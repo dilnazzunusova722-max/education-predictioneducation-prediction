@@ -12,7 +12,10 @@ st.info(
     "Нәтиже нақты баға қоюға арналмаған."
 )
 
-features = ["pretest_score", "attendance_pct", "completion_pct", "on_time_tasks"]
+features = [
+    "pretest_score", "attendance_pct",
+    "completion_pct", "on_time_tasks", "pretest_gap"
+]
 
 
 @st.cache_resource
@@ -36,6 +39,7 @@ def train_model():
     })
     model_df["completion_pct"] = model_df["submitted_tasks"] / 10 * 100
     model_df["on_time_tasks"] = model_df["submitted_tasks"] - model_df["late_tasks"]
+    model_df["pretest_gap"] = 100 - model_df["pretest_score"]
 
     X = model_df[features]
     y = model_df["midterm_score"]
@@ -73,10 +77,12 @@ if clicked:
             "attendance_pct": attendance,
             "completion_pct": completion_pct,
             "on_time_tasks": on_time_tasks,
+            "pretest_gap": 100 - pretest,
         }])
         prediction = float(model.predict(row[features])[0])
         st.metric("Болжамды балл", f"{prediction:.1f} / 100")
         a, b = st.columns(2)
         a.metric("Орындау үлесі", f"{completion_pct:.0f}%")
         b.metric("Уақытында тапсырылған", str(on_time_tasks))
+        st.metric("Бастапқы тестпен бос орын (pretest_gap)", str(100 - pretest))
         st.caption("Болжам нақты нәтижеге кепілдік бермейді.")
